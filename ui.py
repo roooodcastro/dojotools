@@ -26,6 +26,7 @@ import gtk
 import gobject
 import lang
 import subprocess
+import arduino
 import re
 
 try:
@@ -254,21 +255,28 @@ class UserInterface(object):
         if pynotify is not None:
             pynotify.init('dojotools')
             if self.notification:
-                self.notification.close()
-            self.notification = pynotify.Notification(
-                'Dojotools', 
-                self.html_escape(message), 
-                self._current_icon()
-            )
+                self.notification.update('Dojotools',
+                    self.html_escape(message),
+                    self._current_icon()
+                )
+                self.notification.set_timeout(pynotify.EXPIRES_DEFAULT)
+                
+            else:
+                self.notification = pynotify.Notification(
+                    'Dojotools', 
+                    self.html_escape(message), 
+                    self._current_icon()
+                )
 			#Deprecated?
             #self.notification.attach_to_status_icon(self.status_icon)
-            self.notification.set_urgency(
-                pynotify.URGENCY_NORMAL
-            )
-            self.notification.show() 
+                self.notification.set_urgency(
+                    pynotify.URGENCY_NORMAL
+                )
+                self.notification.show() 
 
 
     def update_timer(self):
+        
         if self.timer.time_left:
             time_str = '%02d:%02d' % (
                 (self.timer.time_left / 60),
@@ -276,6 +284,7 @@ class UserInterface(object):
             )
             self.status_icon.set_tooltip(time_str)
         else:
+            self.arduino_time_up()
             self.stop(
                 lambda: self.warn_time_is_up(
                     lang.TIME_IS_UP_UNSTOPPABLE if self.unstoppable else lang.TIME_IS_UP
@@ -295,4 +304,5 @@ class UserInterface(object):
         else:
             func()
             
-
+    def arduino_time_up(self):
+        arduino.send_time_up_message()
