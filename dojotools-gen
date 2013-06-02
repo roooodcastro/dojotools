@@ -1,13 +1,40 @@
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
+"""
+
+
+Dojotools Generator - tools for your coding dojo session
+
+Copyright (C) 2009 Flávio Amieiro <amieiro.flavio@gmail.com>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 dated June, 1991.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Library General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+If you find any bugs or have any suggestions email: amieiro.flavio@gmail.com
+"""
+
 from datetime import datetime
+from optparse import OptionParser
+from optparse import Values
 import os
 import sys
 import re
+import lang
 
 GENERATOR_MESSAGES = {
-    'error': 'Generator failed to generate files',
+    'error': 'Generator failed to generate files. Please specify all required parameters',
     'message': "Generating Folder...",
     'lang': "Language found: %s",
-    'lang_error': "%s generator wasn't found",
+    'lang_error': "Generator for the language %s wasn't found",
     'exists': "Dojo path already exists!",
 }
 
@@ -17,10 +44,43 @@ def sprint(text, show):
     if show:
         print text
 
+def parse_options():
+    usage = "%prog [OPTIONS] COMMAND ..."
+    description = lang.GENERATOR_DESCRIPTION
+    parser = OptionParser(usage, description=description)
+    parser.add_option(
+        '-l',
+        '--language',
+        action='store',
+        type = 'string',
+        dest = 'language',
+        help = lang.LANG_HELP,
+        default = None
+    )
+    parser.add_option(
+        '-p',
+        '--problem-name',
+        action = 'store',
+        type = 'string',
+        dest = 'problem_name',
+        help = lang.PROBLEM_NAME_HELP,
+        default = None
+    )
+    parser.add_option(
+        '-e',
+        '--extra-name',
+        action = 'store',
+        type = 'string',
+        dest = 'extra_name',
+        help = lang.EXTRA_NAME_HELP,
+        default = None
+    )
+    return parser.parse_args()
+
 class Generator(object):
     
-    def __init__(self, args, messages = GENERATOR_MESSAGES):
-        self.opts = args.split(" ")
+    def __init__(self, options, messages = GENERATOR_MESSAGES):
+        self.opts = options
         self.errors = []
 
         self.language = ""
@@ -42,8 +102,14 @@ class Generator(object):
             sprint(error, show)    
         return False
         
+    def show_help(self):
+        help_path = os.path.dirname(os.path.abspath(__file__)) + "/help/generator.txt"
+        f = open(help_path, 'r')
+        data = f.read()
+        print data
+        
     def parse_opts(self, show=True):
-        if len(self.opts) < 2:
+        if self.opts.language == None or self.opts.problem_name == None:
             self.errors.append(self.messages['error'])
         self.show_errors(show)
         return not bool(self.errors) 
@@ -51,11 +117,13 @@ class Generator(object):
     def read_opts(self, show=True):
         if self.errors:
             return self.show_errors(show)
-        self.language = self.opts.pop(0)
-        self.problem_name = self.opts.pop(0)
-        self.extra_name = "_".join(self.opts)
+        self.language = self.opts.language
+        self.problem_name = self.opts.problem_name
+        self.extra_name = self.opts.extra_name
         if self.extra_name:
             self.extra_name = "_" + self.extra_name
+        else:
+            self.extra_name = ""
 
         self.folder_name = "%s%s_%s_%s" %(
             self.today, 
@@ -133,7 +201,14 @@ class Generator(object):
 
 
 def generate(generate, directory, messages):
-    generator = Generator(generate, messages=messages)
+    options = generate.split()
+    if len(options) < 2:
+        return None
+    opts = Values()
+    opts.language = options.pop(0)
+    opts.problem_name = options.pop(0)
+    opts.extra_name = "_".join(options)
+    generator = Generator(opts, messages=messages)
     if generate and generator.parse_opts():
         generator.read_opts()
         generator.generate() 
@@ -142,9 +217,8 @@ def generate(generate, directory, messages):
     return directory
 
 if __name__ == '__main__':
-    args = sys.argv
-    args.pop(0)
-    generator = Generator(' '.join(args), messages=GENERATOR_MESSAGES)
+    options, args = parse_options()
+    generator = Generator(options, messages=GENERATOR_MESSAGES)
     if generator.parse_opts():
         generator.read_opts()
         generator.generate() 

@@ -34,6 +34,13 @@ DESCRIPTION = """
     arguments. You can specify as many commands as you wish, but don't forget
     to use quotes if you command has spaces in it.
 """.replace('  ', '')
+GENERATOR_DESCRIPTION = """
+    %prog is a tool that generates a folder structure to start a Dojo. To
+    generate the Dojo files, both the language and problem name parameters
+    must be specified. The extra name parameter is optional. The generated
+    folder will have the name in the following format:
+    "[yearmonthday]_[extraname]_[language]_[problemname]"
+""".replace('  ', '')
 GIT_HELP = ('if this flag is used, a git commit will '
             'be issued whenever the files change')
 DIRECTORY_HELP = 'Watch DIRECTORY'
@@ -49,6 +56,9 @@ GENERATE_HELP = ("generate a folder with files for coding dojo. "
                  "GENERATE: '(language) (problem) (modifiers)'"
 )
 WHO_HELP = ("if this flag is used, dojotools will ask who is the pilot before each session")
+LANG_HELP = ("specifies the language to be used. Available languages: c, coffeescript, haskell, java, javascript, lua, moonscript, pascal, python, ruby")
+PROBLEM_NAME_HELP = ("specifies the name of the problem")
+EXTRA_NAME_HELP = ("specifies an extra name that will be used to name the problem folder. Optional.")
 
 RUN_FILE_WARNING = "Dojotools couldn't find run.dojo. Now it's just a timer!" 
 

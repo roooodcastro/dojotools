@@ -27,6 +27,8 @@ import sys
 import lang
 from optparse import OptionParser
 from ui import UserInterface
+import imp
+imp.load_source("generator", "dojotools-gen")
 from generator import generate
 from tools import DojoPlayer, RunThread, Timer, Monitor, set_execute_config
 
